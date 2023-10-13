@@ -8,7 +8,8 @@
         "41",
         "42",
         "43",
-        "44"
+        "44",
+        "45"
     ],
     "bindings": "org.gnome.shell.extensions.materialshell.bindings",
     "layouts": "org.gnome.shell.extensions.materialshell.layouts",

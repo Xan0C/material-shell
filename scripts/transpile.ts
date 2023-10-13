@@ -26,8 +26,8 @@ TestClass = TestClass_1 = __decorate([
 `;
 
 const testOutput = `
-const GLib = imports.gi.GLib;
-const { a, b } = imports.gi.GLib;
+import GLib from 'gi://GLib';
+import { a, b } from 'gi://GLib';
 var TestClass_1;
 
 let TestClass = TestClass_1 = class TestClass extends Clutter.Actor {
@@ -130,7 +130,7 @@ function getDecoratorTargets(node: BaseNode): string[] | null {
 
             let decoratorFunctions = args[0];
             if (!isArrayExpression(decoratorFunctions)) continue;
-            
+
             const gObjectDecorator = decoratorFunctions.elements.find(item => {
                 return isIdentifier(item) && item.name == "registerGObjectClass";
             });
@@ -158,27 +158,27 @@ function getDecoratorTargets(node: BaseNode): string[] | null {
 /// const { a, b, c } = imports.gi.Source;
 function convertImports(text: string) {
     const giImports = [
-        ["clutter", "imports.gi.Clutter"],
-        ["cogl", "imports.gi.Cogl"],
-        ["gdk", "imports.gi.Gdk"],
-        ["gio", "imports.gi.Gio"],
-        ["glib", "imports.gi.GLib"],
-        ["gnomedesktop", "imports.gi.GnomeDesktop"],
-        ["gobject", "imports.gi.GObject"],
-        ["gtk", "imports.gi.Gtk"],
-        ["meta", "imports.gi.Meta"],
-        ["shell", "imports.gi.Shell"],
-        ["soup", "imports.gi.Soup"],
-        ["st", "imports.gi.St"],
-        ["gjs", "imports"],
-        ["ui", "imports.ui"],
+        ["clutter", "'gi://Clutter'"],
+        ["cogl", "'gi://Cogl'"],
+        ["gdk", "'gi://Gdk'"],
+        ["gio", "'gi://Gio'"],
+        ["glib", "'gi://GLib'"],
+        ["gnomedesktop", "'gi://GnomeDesktop'"],
+        ["gobject", "'gi://GObject'"],
+        ["gtk", "'gi://Gtk'"],
+        ["meta", "'gi://Meta'"],
+        ["shell", "'gi://Shell'"],
+        ["soup", "'gi://Soup'"],
+        ["st", "'gi://St'"],
+        // ["gjs", "imports"], TODO: whats this?
+        // ["ui", "'resource:///org/gnome/shell/ui/'"] TODO: special case
     ];
 
     const regexes: [RegExp, string][] = giImports.map(x => {
         const [name, importpath] = x;
         return [
             new RegExp("import \\* as ([\\w\\d]+) from ['\"]" + name + "['\"];", "g"),
-            "const $1 = " + importpath + ";"
+            "import $1 from " + importpath + ";"
         ]
     });
 
@@ -186,7 +186,7 @@ function convertImports(text: string) {
         const [name, importpath] = x;
         return [
             new RegExp("import \\{([^\\}]+)\\} from ['\"]" + name + "['\"];", "g"),
-            "const {$1} = " + importpath + ";"
+            "import {$1} from " + importpath + ";"
         ]
     });
 
@@ -231,7 +231,7 @@ function transpile(ast: BaseNode) {
         },
         leave: function(node, parent, prop, index) {}
     });
-    
+
     walk( ast, {
         enter: function ( node, parent, prop, index ) {
             if (isClassExpression(node)) {
