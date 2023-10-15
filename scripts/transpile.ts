@@ -11,6 +11,7 @@ import { ASTNode } from "ast-types";
 const testInput = `
 import * as GLib from 'glib';
 import { a, b } from 'glib';
+import { main as Main } from 'ui';
 var TestClass_1;
 
 let TestClass = TestClass_1 = class TestClass extends Clutter.Actor {
@@ -28,6 +29,7 @@ TestClass = TestClass_1 = __decorate([
 const testOutput = `
 import GLib from 'gi://GLib';
 import { a, b } from 'gi://GLib';
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 var TestClass_1;
 
 let TestClass = TestClass_1 = class TestClass extends Clutter.Actor {
@@ -171,7 +173,6 @@ function convertImports(text: string) {
         ["soup", "'gi://Soup'"],
         ["st", "'gi://St'"],
         // ["gjs", "imports"], TODO: whats this?
-        // ["ui", "'resource:///org/gnome/shell/ui/'"] TODO: special case
     ];
 
     const regexes: [RegExp, string][] = giImports.map(x => {
@@ -196,6 +197,15 @@ function convertImports(text: string) {
             new RegExp(`(const {.+) as (.+} = ${importpath};)`, "g"),
             "$1: $2"
         ]
+    });
+
+    const uiRegex = new RegExp("import \{([^\}]+)\} from 'ui';", "g");
+    text = text.replace(uiRegex, (substring, match) => {
+        const imports = match.split(',').map((s: string) => s.trim());
+        return imports.map((i: string) => {
+            const match = /(.+)\s+as\s+(.+)/.exec(i) || [null, i, i];
+            return `import * as ${match[2]} from 'resource:///org/gnome/shell/ui/${match[1]}.js';`
+        }).join(' ');
     });
 
     for (let regex of regexes) {
